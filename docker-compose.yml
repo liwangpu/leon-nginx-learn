@@ -1,0 +1,55 @@
+version: "3.4"
+
+services:
+  nginx-proxy:
+    container_name: nginx-proxy-c
+    image: nginx-proxy:latest
+    build:
+      context: .
+      dockerfile: nginx-proxy/Dockerfile
+    ports:
+      - "80:80"
+    restart: always
+    networks:
+      - nginx-proxy-net
+
+  web-site-0:
+    container_name: web-site-0-c
+    image: nginx:1.21.4-alpine
+    ports:
+      - "2999:80"
+    restart: always
+    networks:
+      - nginx-proxy-net
+      
+  web-site-1:
+    container_name: web-site-1-c
+    image: web-site:latest
+    build:
+      context: .
+      dockerfile: web-site/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - APPNAME=app1
+    restart: always
+    networks:
+      - nginx-proxy-net
+
+  web-site-2:
+    container_name: web-site-2-c
+    image: web-site:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - PORT=3000
+      - APPNAME=app2
+    depends_on:
+      - web-site-1
+    restart: always
+    networks:
+      - nginx-proxy-net
+
+networks: 
+  nginx-proxy-net:
